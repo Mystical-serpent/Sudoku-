@@ -1,4 +1,4 @@
-import tkinter as tts
+import tkinter as tts # ;)
 import numpy as np
 import random
 
