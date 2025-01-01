@@ -1,102 +1,123 @@
 import tkinter as tts
-from sudoku import generate_sudoku, emptyspaces #this may cause an error as "sudoku" library may not be present
-import numpy as np
 
-def for_sudoku_grid(Window, sudoku):
+
+def create_start_window(start_callback, exit_callback):
+    #Creates the start-up window.
+    start_window = tts.Tk()
+    start_window.title("Sudoku")
+    start_window.geometry("700x500")
+
+    label_for_start = tts.Label(
+        start_window, text="SUDOKU", font=("Calibri", 30)
+    )
+    label_for_start.pack(pady=35)
+
+    button_frame = tts.Frame(start_window)
+    button_frame.pack(pady=20)
+
+    button_to_play = tts.Button(
+        button_frame,
+        text="Play",
+        font=("Calibri", 18),
+        width=10,
+        background="Green",
+        command=start_callback,
+    )
+    button_to_play.grid(row=0, column=0, padx=20)
+
+    button_to_exit = tts.Button(
+        button_frame,
+        text="Exit",
+        width=10,
+        font=("Calibri", 18),
+        background="Red",
+        command=exit_callback,
+    )
+    button_to_exit.grid(row=0, column=1, padx=20)
+
+    return start_window
+
+
+def create_main_window(check_callback):
+    #Creates the main Sudoku window.
+    main_window = tts.Tk()
+    main_window.title("Sudoku")
+    main_window.geometry("800x600")
+
+    label = tts.Label(main_window, text="Try out this Problem", font=("Calibri", 20))
+    label.pack(padx=14, pady=18)
+
+    grid_frame = tts.Frame(main_window)
+    grid_frame.pack()
+
+    return main_window, grid_frame
+
+
+def display_result(message, color, play_again_callback, exit_callback):
+    #Creates a pop-up window to display the result
+    result_window = tts.Tk()
+    result_window.title("Results")
+    result_window.geometry("350x200")
+
+    label_result = tts.Label(
+        result_window, text=message, font=("Calibri", 19), fg=color, pady=20
+    )
+    label_result.pack()
+
+    button_play_again = tts.Button(
+        result_window,
+        text="Play Again",
+        font=("Calibri", 18),
+        background="Green",
+        command=play_again_callback,
+    )
+    button_play_again.pack(pady=10)
+
+    button_exit = tts.Button(
+        result_window,
+        text="Exit",
+        font=("Calibri", 18),
+        background="Red",
+        command=exit_callback,
+    )
+    button_exit.pack(pady=10)
+
+    return result_window
+
+
+def create_sudoku_grid(window, sudoku, validate_command):
+    #Creates the grid UI for Sudoku.
     inputs_all = []
-    
-    def validate_input(input_entry):
-        if input_entry == "" or (input_entry.isdigit() and 1 <= int(input_entry) <= 9):
-            return True
-        return False
-
-    vcmd = (Window.register(validate_input), "%P")
 
     for row in range(9):
         row_entries = []
         for column in range(9):
-            Specific_val = sudoku[row][column]
-            if Specific_val != 0:
-                label_grid = tts.Label(Window, 
-                                       text=str(Specific_val),
-                                       font=("Calibri", 15),
-                                       width=3,
-                                       height=1,
-                                       relief="solid",
-                                       borderwidth=0.8, 
-                                       bg="lightgrey")
-                label_grid.grid(row=row,
-                                column=column, 
-                                padx=1, 
-                                pady=1)
+            specific_val = sudoku[row][column]
+            if specific_val != 0:
+                label_grid = tts.Label(
+                    window,
+                    text=str(specific_val),
+                    font=("Calibri", 15),
+                    width=3,
+                    height=1,
+                    relief="solid",
+                    borderwidth=0.8,
+                    bg="lightgrey",
+                )
+                label_grid.grid(row=row, column=column, padx=1, pady=1)
+                row_entries.append(None)
             else:
                 entry_inputs = tts.Entry(
-                    Window, 
-                    font=("Calibri", 15), 
+                    window,
+                    font=("Calibri", 15),
                     width=3,
                     relief="solid",
                     borderwidth=1,
                     justify="center",
                     validate="key",
-                    validatecommand=vcmd
+                    validatecommand=validate_command,
                 )
-                entry_inputs.grid(row=row, 
-                                  column=column, 
-                                  padx=1, 
-                                  pady=1)
+                entry_inputs.grid(row=row, column=column, padx=1, pady=1)
                 row_entries.append(entry_inputs)
         inputs_all.append(row_entries)
     return inputs_all
-
-def validate_the_grid(inputs_all, Empty_index_store, original_grid):
-    Window_pop_up = tts.Tk()
-    Window_pop_up.title('Results')
-    Window_pop_up.geometry("350x350")
-
-    temp_original_od = np.array(original_grid).copy().flatten()
-    Actual_value_list = []
-    empty_index = 0
-    while empty_index < len(Empty_index_store):
-        Actual_value_list.append(temp_original_od[Empty_index_store[empty_index]])
-        empty_index += 1 
-    
-    flattened_inputs = [entry.get() for row in inputs_all for entry in row]
-
-    if flattened_inputs == Actual_value_list:
-        label_result = tts.Label(Window_pop_up, 
-                                 text="The Grid is Valid, Good job!", 
-                                 font=("Calibri", 19), 
-                                 background="Green")
-        label_result.pack()
-    else:
-        label_result = tts.Label(Window_pop_up,
-                                 text="The Grid is Invalid",
-                                 font=("Calibri", 19),
-                                 background="Red")
-        label_result.pack()
-    
-    button_exit = tts.Button(Window_pop_up, text="Exit",
-                             font=("Calibri", 18), 
-                             command=lambda: [Window_pop_up.quit(), Window.quit()])
-    button_exit.pack()
-
-# Main Tkinter window
-Window = tts.Tk()
-Window.title('Sudoku')
-Window.geometry("800x600")
-
-label = tts.Label(Window, text="Try out this Problem", font=('Calibri', 20))
-label.pack(padx=14, pady=18)
-
-Frames_of_the_grid = tts.Frame(Window)
-Frames_of_the_grid.pack()
-
-sudoku_table_no_spaces = generate_sudoku()
-sudoku_table_spaces, Empty_index_store = emptyspaces(sudoku_table_no_spaces)
-
-inputs_all = for_sudoku_grid(Frames_of_the_grid, sudoku_table_spaces)
-
-check_button = tts.Button(Window, text="Check", font=("Calibri", 15), command=lambda: validate_the_grid(inputs_all, Empty_index_store, sudoku_table_no_spaces))
-check_button.pack(pady=30)
-
-Window.mainloop()
